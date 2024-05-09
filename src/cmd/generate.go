@@ -17,6 +17,7 @@ var generateCmd = &cobra.Command{
 	Short:   lang.CmdGenerateShort,
 	Long:    lang.CmdGenerateLong,
 	Run: func(_ *cobra.Command, _ []string) {
+		// for now its just this. Later replace with new functionality
 		generate.Generate()
 	},
 }

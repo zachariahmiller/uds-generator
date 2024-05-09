@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Test API Form</title>
+</head>
+<body>
+<h1>Test Find-Images API</h1>
+<form id="apiForm">
+    <label for="name">Name:</label><br>
+    <input type="text" id="name" name="name" value="gitness"><br>
+    <label for="url">URL:</label><br>
+    <input type="text" id="url" name="url" value="https://github.com/harness/gitness"><br>
+    <label for="version">Version:</label><br>
+    <input type="text" id="version" name="version" value="v3.0.0-beta.7"><br>
+    <label for="gitPath">Git Path:</label><br>
+    <input type="text" id="gitPath" name="gitPath" value="chart/gitness"><br>
+    <button type="button" onclick="submitForm()">Submit</button>
+</form>
+
+<h2>Test RepoInfo API</h2>
+<form id="repoInfoForm">
+    <label for="repoName">Name:</label><br>
+    <input type="text" id="repoName" name="name" value="harbor"><br>
+    <label for="organization">Organization:</label><br>
+    <input type="text" id="organization" name="organization" value="defenseunicorns"><br>
+    <label for="platform">Platform:</label><br>
+    <input type="text" id="platform" name="platform" value="github.com"><br>
+    <label for="author">Author:</label><br>
+    <input type="text" id="author" name="author" value="The UDS Authors"><br>
+    <button type="button" onclick="submitRepoInfoForm()">Submit</button>
+</form>
+
+<script>
+function submitForm() {
+    const formData = {
+        name: document.getElementById('name').value,
+        url: document.getElementById('url').value,
+        version: document.getElementById('version').value,
+        gitPath: document.getElementById('gitPath').value,
+    };
+
+    fetch('/api/package/find-images', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+    })
+    .then(response => response.json())
+    .then(data => alert(JSON.stringify(data)))
+    .catch(error => alert('Error:' + error));
+}
+
+function submitRepoInfoForm() {
+    const formData = {
+        name: document.getElementById('repoName').value,
+        organization: document.getElementById('organization').value,
+        platform: document.getElementById('platform').value,
+        author: document.getElementById('author').value,
+    };
+
+    fetch('/api/package/scaffold', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+    })
+    .then(response => response.json())
+    .then(data => alert(JSON.stringify(data)))
+    .catch(error => alert('Error:' + error));
+}
+</script>
+</body>
+</html>

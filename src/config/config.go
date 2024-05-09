@@ -43,6 +43,20 @@ var (
 	// GenerateOutputDir is the directory to output the generated package to
 	GenerateOutputDir string
 
+	// Name of repo/package/application for scaffolding used in repoPath like github.com/organization/uds-package-repo
+	ScaffoldRepoName string
+
+	// Organization of package for scaffolding used in repoPath eg github.com/organization/repo
+	ScaffoldOrganization string
+
+	// Author of package for scaffolding
+	ScaffoldAuthor string
+	// Git Platform for package for scaffolding eg gitlab.com, github.com
+	ScaffoldPlatform string
+
+	GenerateUDSVersion = GenerateChartVersion + "-uds.0"
+
+	GenerateAuthors = "The UDS Authors"
 	// HelmTimeout is the default timeout for helm deploys
 	HelmTimeout = 15 * time.Minute
 

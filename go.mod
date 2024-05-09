@@ -5,14 +5,11 @@ go 1.22.0
 toolchain go1.22.2
 
 require (
-	github.com/defenseunicorns/pkg/helpers v1.1.1
 	github.com/defenseunicorns/uds-cli v0.10.4
 	github.com/defenseunicorns/zarf v0.33.0
 	github.com/goccy/go-yaml v1.11.3
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
-	helm.sh/helm/v3 v3.14.4
-	k8s.io/api v0.30.0
 	k8s.io/apimachinery v0.30.0
 )
 
@@ -133,6 +130,7 @@ require (
 	github.com/cyberphone/json-canonicalization v0.0.0-20231011164504-785e29786b46 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/defenseunicorns/pkg/helpers v1.1.1 // indirect
 	github.com/defenseunicorns/pkg/oci v0.0.1 // indirect
 	github.com/deitch/magic v0.0.0-20230404182410-1ff89d7342da // indirect
 	github.com/digitorus/pkcs7 v0.0.0-20230818184609-3a137a874352 // indirect
@@ -414,6 +412,8 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	helm.sh/helm/v3 v3.14.4 // indirect
+	k8s.io/api v0.30.0 // indirect
 	k8s.io/apiextensions-apiserver v0.29.0 // indirect
 	k8s.io/apiserver v0.29.0 // indirect
 	k8s.io/cli-runtime v0.29.1 // indirect

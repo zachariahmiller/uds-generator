@@ -2,8 +2,8 @@ package generate
 
 import (
 	"embed"
+	"fmt"
 	"io"
-	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -48,12 +48,14 @@ var required bool = true
 
 // Generate a UDS Package from a given helm chart in the config
 func Generate() (types.ZarfPackage, error) {
+	log.Println("Starting Generate function")
 	// Generate the metadata
+	fmt.Printf("Generating UDS Package for %s\n", config.GenerateChartName)
 	metadata := types.ZarfMetadata{
 		Name:    config.GenerateChartName,
-		Version: config.GenerateChartVersion + "-uds.0",
+		Version: config.GenerateUDSVersion,
 		URL:     config.GenerateChartUrl,
-		Authors: "2 days no pROBlem",
+		Authors: config.GenerateAuthors,
 	}
 
 	// Generate the config chart zarf yaml
@@ -70,6 +72,7 @@ func Generate() (types.ZarfPackage, error) {
 		Namespace: config.GenerateChartName,
 		URL:       config.GenerateChartUrl,
 		Version:   config.GenerateChartVersion,
+		GitPath:   config.GenerateChartGitPath,
 	}
 
 	// Generate the component
@@ -89,9 +92,11 @@ func Generate() (types.ZarfPackage, error) {
 		Metadata:   metadata,
 		Components: components,
 	}
+	log.Println("Created package instance")
 
 	// Create generated directory if it doesn't exist
 	if err := os.MkdirAll(config.GenerateOutputDir, 0755); err != nil {
+		log.Println("Failed to create output directory:", err)
 		return packageInstance, err
 	}
 	zarfPath := filepath.Join(config.GenerateOutputDir, "zarf.yaml")
@@ -99,19 +104,24 @@ func Generate() (types.ZarfPackage, error) {
 	// Write in progress zarf yaml to a file
 	text, _ := goyaml.Marshal(packageInstance)
 	if err := os.WriteFile(zarfPath, text, 0644); err != nil {
+		log.Println("Failed to write zarf.yaml:", err)
 		return packageInstance, err
 	}
+	log.Println("Wrote zarf.yaml to output directory")
 
 	// Copy template chart to destination
-	writeFolder(chart)
+	writeEmbeddedFolder(chart, "", "")
 	// Copy github folder to destination
-	writeFolder(github)
+	writeEmbeddedFolder(github, "", "")
 	// Manipulate chart
+	log.Println("Entering manipulatePackage")
 	if err := manipulatePackage(); err != nil {
+		log.Println("Error in manipulatePackage:", err)
 		return packageInstance, err
 	}
 
 	if err := writeTasks(tasks); err != nil {
+		log.Println("Error in writeTasks:", err)
 		return packageInstance, err
 	}
 
@@ -126,17 +136,22 @@ func Generate() (types.ZarfPackage, error) {
 			KubeVersionOverride: kubeVersionOverride,
 		},
 	}
+	log.Println("Set up packager configuration")
 
 	packager := packager.NewOrDie(&generator.pkg)
 	defer packager.ClearTempPaths()
 
 	stdout := os.Stdout
 	os.Stdout = nil
+	log.Println("Finding images...")
 	images, err := packager.FindImages()
 	if err != nil {
+		log.Println("Error finding images:", err)
 		return packageInstance, err
 	}
 	os.Stdout = stdout
+	log.Println("Found images")
+
 	// TODO: Strip off cosign signatures/attestations?
 	components[0].Images = images[config.GenerateChartName]
 
@@ -145,88 +160,61 @@ func Generate() (types.ZarfPackage, error) {
 	// Write final zarf yaml to a file
 	text, _ = goyaml.Marshal(packageInstance)
 	if err := os.WriteFile(zarfPath, text, 0644); err != nil {
+		log.Println("Failed to write final zarf.yaml:", err)
 		return packageInstance, err
 	}
 
+	log.Println("Generate function completed successfully")
 	return packageInstance, nil
 }
 
-// Write an embedded folder to the localDir
-func writeFolder(folder embed.FS) {
-	// Walk through the embedded filesystem
-	err := fs.WalkDir(folder, ".", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-
-		// Construct destination file path
-		destPath := filepath.Join(config.GenerateOutputDir, path)
-
-		if d.IsDir() {
-			// Create directory if it doesn't exist
-			return os.MkdirAll(destPath, 0755)
-		}
-
-		// Open source file from embedded filesystem
-		srcFile, err := folder.Open(path)
-		if err != nil {
-			return err
-		}
-		defer srcFile.Close()
-
-		// Create destination file
-		destFile, err := os.Create(destPath)
-		if err != nil {
-			return err
-		}
-		defer destFile.Close()
-
-		// Copy contents from source to destination
-		_, err = io.Copy(destFile, srcFile)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		panic(err)
-	}
-}
-
 func manipulatePackage() error {
+	log.Println("Starting manipulatePackage function")
 	var udsPackage Package
 	packagePath := filepath.Join(config.GenerateOutputDir, "chart", "templates", "uds-package.yaml")
 	packageYaml, err := os.ReadFile(packagePath)
 	if err != nil {
+		log.Println("Failed to read uds-package.yaml:", err)
 		return err
 	}
 	if err := goyaml.Unmarshal(packageYaml, &udsPackage); err != nil {
+		log.Println("Failed to unmarshal uds-package.yaml:", err)
 		return err
 	}
+	log.Println("Unmarshalled uds-package.yaml")
+
 	udsPackage.ObjectMeta.Name = config.GenerateChartName
 	udsPackage.ObjectMeta.Namespace = config.GenerateChartName
 
 	expose, err := findHttpServices()
 	if err != nil {
+		log.Println("Error in findHttpServices:", err)
 		return err
 	}
+	fmt.Printf("Found services to expose: %v", expose)
 	if expose != nil {
 		udsPackage.Spec.Network.Expose = expose
 	}
 
 	text, _ := goyaml.Marshal(udsPackage)
-	os.WriteFile(packagePath, text, 0644)
+	if err := os.WriteFile(packagePath, text, 0644); err != nil {
+		log.Println("Failed to write uds-package.yaml:", err)
+		return err
+	}
+	log.Println("Wrote uds-package.yaml")
+
+	log.Println("manipulatePackage function completed successfully")
 	return nil
 }
 
 func writeTasks(tasks embed.FS) error {
+	log.Println("Starting writeTasks function")
 	fileName := "tasks.yaml"
 
 	// Open the embedded file.
 	fileData, err := tasks.Open(fileName)
 	if err != nil {
+		log.Println("Failed to open tasks.yaml:", err)
 		return err
 	}
 	defer fileData.Close()
@@ -235,20 +223,24 @@ func writeTasks(tasks embed.FS) error {
 	targetPath := config.GenerateOutputDir + "/" + fileName
 	outFile, err := os.Create(targetPath)
 	if err != nil {
+		log.Println("Failed to create tasks.yaml:", err)
 		return err
 	}
 	defer outFile.Close()
 
 	// Copy the content of the embedded file to the new file.
 	if _, err := io.Copy(outFile, fileData); err != nil {
+		log.Println("Failed to copy tasks.yaml:", err)
 		return err
 	}
 
-	log.Printf("File %s copied to %s successfully.", fileName, config.GenerateOutputDir)
+	fmt.Printf("File %s copied to %s successfully.", fileName, config.GenerateOutputDir)
+	log.Println("writeTasks function completed successfully")
 	return nil
 }
 
 func findHttpServices() ([]Expose, error) {
+	log.Println("Starting findHttpServices function")
 	var exposeList []Expose
 	chartName := config.GenerateChartName
 	chartVersion := config.GenerateChartVersion
@@ -270,19 +262,24 @@ func findHttpServices() ([]Expose, error) {
 			getter.WithInsecureSkipVerifyTLS(config.CommonOptions.Insecure),
 		},
 	}
+	log.Println("Set up chart downloader")
 
 	temp := filepath.Join(config.GenerateOutputDir, "temp")
 	if err := helpers.CreateDirectory(temp, 0700); err != nil {
+		log.Println("Failed to create temporary directory:", err)
 		return nil, err
 	}
 	defer os.RemoveAll(temp)
+	log.Println("Created temporary directory")
 
 	chartURL, _ := repo.FindChartInAuthRepoURL(repoURL, "", "", chartName, chartVersion, pull.CertFile, pull.KeyFile, pull.CaFile, getter.All(pull.Settings))
-
+	log.Println("Created temporary directory")
 	saved, _, err := chartDownloader.DownloadTo(chartURL, pull.Version, temp)
 	if err != nil {
+		log.Println("Failed to download chart:", err)
 		return nil, err
 	}
+	log.Println("Downloaded chart")
 
 	client := action.NewInstall(actionConfig)
 	client.DryRun = true
@@ -297,11 +294,14 @@ func findHttpServices() ([]Expose, error) {
 
 	loadedChart, err := loader.Load(saved)
 	if err != nil {
+		log.Println("Failed to load chart:", err)
 		return nil, err
 	}
+	log.Println("Loaded chart")
 
 	templatedChart, err := client.Run(loadedChart, nil)
 	if err != nil {
+		log.Println("Failed to run Helm client:", err)
 		return nil, err
 	}
 	template := templatedChart.Manifest
@@ -330,5 +330,6 @@ func findHttpServices() ([]Expose, error) {
 			}
 		}
 	}
+	log.Println("findHttpServices function completed successfully")
 	return exposeList, nil
 }

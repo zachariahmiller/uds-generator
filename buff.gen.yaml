@@ -1,8 +1,0 @@
-version: v1
-plugins:
-  - name: go
-    out: gen/go
-  - name: grpc-gateway
-    out: gen/grpc-gateway
-  - name: openapi
-    out: gen/openapi

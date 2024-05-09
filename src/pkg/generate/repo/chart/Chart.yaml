@@ -1,6 +1,6 @@
 apiVersion: v2
-name: uds-<name>-config
-description: uds-<name>-config
+name: uds-config
+description: uds-config
 
 # A chart can be either an 'application' or a 'library' chart.
 #

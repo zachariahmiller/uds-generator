@@ -6,20 +6,31 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/defenseunicorns/uds-generator/src/config"
 )
 
 // Write an embedded folder to the localDir
-func writeFolder(folder embed.FS) {
+func writeEmbeddedFolder(folder embed.FS, basePathToRemove string, basePathToAdd string) {
 	// Walk through the embedded filesystem
 	err := fs.WalkDir(folder, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
+		// Optionally replace base path from the path
+		var newPath string
+		if basePathToRemove != "" && strings.HasPrefix(path, basePathToRemove) {
+			newPath = strings.TrimPrefix(path, basePathToRemove)
+			newPath = strings.TrimPrefix(newPath, "/")      // Remove any leading slash left after trimming
+			newPath = filepath.Join(basePathToAdd, newPath) // Prepend the new base path
+		} else {
+			newPath = path
+		}
+
 		// Construct destination file path
-		destPath := filepath.Join(config.GenerateOutputDir, path)
+		destPath := filepath.Join(config.GenerateOutputDir, newPath)
 
 		if d.IsDir() {
 			// Create directory if it doesn't exist
