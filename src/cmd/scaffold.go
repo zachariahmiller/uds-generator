@@ -5,6 +5,8 @@
 package cmd
 
 import (
+	"log"
+
 	"github.com/defenseunicorns/uds-generator/src/config"
 	"github.com/defenseunicorns/uds-generator/src/config/lang"
 	"github.com/defenseunicorns/uds-generator/src/pkg/common"
@@ -23,8 +25,10 @@ var scaffoldCmd = &cobra.Command{
 			Organization: config.ScaffoldOrganization,
 			Author:       config.ScaffoldAuthor,
 			Platform:     config.ScaffoldPlatform,
+			Version:      config.GenerateUDSVersion,
 		}
 		generate.Scaffold(repoInfo)
+		log.Printf("Scaffolded %s", repoInfo.Name)
 	},
 }
 
@@ -35,6 +39,7 @@ func init() {
 	scaffoldCmd.Flags().StringVarP(&config.ScaffoldAuthor, "author", "a", "The UDS Authors", lang.CmdScaffoldFlagName)
 	scaffoldCmd.Flags().StringVarP(&config.ScaffoldPlatform, "platform", "p", "github.com", lang.CmdScaffoldFlagPlatform)
 	scaffoldCmd.Flags().StringVarP(&config.GenerateOutputDir, "output", "d", "generated", lang.CmdGenerateOutputDir)
+	scaffoldCmd.Flags().StringVarP(&config.GenerateChartVersion, "version", "v", "0.1.0", lang.CmdGenerateFlagVersion)
 	scaffoldCmd.MarkFlagRequired("name")
 	// scaffoldCmd.MarkFlagRequired("organization")
 	// scaffoldCmd.MarkFlagRequired("platform")

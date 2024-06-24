@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/defenseunicorns/uds-generator/src/config"
 	"github.com/defenseunicorns/uds-generator/src/pkg/common"
 	"github.com/defenseunicorns/uds-generator/src/pkg/generate"
 	"github.com/defenseunicorns/zarf/src/pkg/message"
@@ -76,6 +77,11 @@ func ScaffoldHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	log.Printf("Version is equal to %s", repoInfo.Version)
+	config.GenerateChartVersion = repoInfo.Version
+	log.Printf("Version is equal to %s", config.GenerateChartVersion)
+	repoInfo.Version = config.GenerateUDSVersion
+	log.Printf("Version is equal to %s", repoInfo.Version)
 	response, err := generate.Scaffold(repoInfo)
 	if err != nil {
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)

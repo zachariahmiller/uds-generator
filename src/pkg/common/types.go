@@ -12,4 +12,5 @@ type RepoInfo struct {
 	Organization string `json:"organization"`
 	Platform     string `json:"platform"`
 	Author       string `json:"author"`
+	Version      string `json:"version"`
 }

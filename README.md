@@ -2,10 +2,14 @@
 
 ## Test
 
-```bash
- ./uds-generator generate -c oci://ghcr.io/stefanprodan/charts/podinfo -v 6.6.2 -n podinfo
+Generate (OG way/Deprecated):
 
+```bash
+# This fails on uds package mutation and lookups
+ ./uds-generator generate -c oci://ghcr.io/stefanprodan/charts/podinfo -v 6.6.2 -n podinfo
 ```
+
+
 
  8727  zarf dev generate podinfo --url https://github.com/stefanprodan/podinfo.git --version 6.4.0 --gitPath charts/podinfo --output-directory upstream
  8728  zarf dev generate podinfo --url https://repo1.dso.mil/big-bang/apps/sandbox/podinfo --version 6.4.0 --gitPath charts --output-directory registry1

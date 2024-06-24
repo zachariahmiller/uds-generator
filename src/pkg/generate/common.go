@@ -63,4 +63,10 @@ func writeEmbeddedFolder(folder embed.FS, basePathToRemove string, basePathToAdd
 	if err != nil {
 		panic(err)
 	}
+
+	// Attempt to remove the specified base directory if it is empty
+	err = os.Remove(filepath.Join(config.GenerateOutputDir, basePathToRemove))
+	if err != nil {
+		panic(err)
+	}
 }

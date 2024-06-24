@@ -33,7 +33,7 @@ func Scaffold(data common.RepoInfo) (string, error) {
 	writeEmbeddedFolder(repoTemplate, "repo/", "uds-package-"+data.Name)
 
 	// List of Markdown file paths
-	filePaths := []string{"CONTRIBUTING.md", "README.md", "SECURITY.md", "CODEOWNERS", "chart/Chart.yaml", "renovate.json"}
+	filePaths := []string{"CONTRIBUTING.md", "README.md", "SECURITY.md", "CODEOWNERS", "chart/Chart.yaml", "renovate.json", ".release-please-manifest.json", "tasks/publish.yaml"}
 
 	// Map of strings to find and their replacements
 	replacements := map[string]string{
@@ -42,6 +42,7 @@ func Scaffold(data common.RepoInfo) (string, error) {
 		"<organization>": data.Organization,
 		"<author>":       data.Author,
 		"<year>":         strconv.Itoa(time.Now().Year()),
+		"<version>":      data.Version,
 	}
 
 	// Loop over each file path
