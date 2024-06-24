@@ -189,11 +189,11 @@ func manipulatePackage() error {
 	expose, err := findHttpServices()
 	if err != nil {
 		log.Println("Error in findHttpServices:", err)
-		return err
-	}
-	fmt.Printf("Found services to expose: %v", expose)
-	if expose != nil {
-		udsPackage.Spec.Network.Expose = expose
+	} else {
+		fmt.Printf("Found services to expose: %v", expose)
+		if expose != nil {
+			udsPackage.Spec.Network.Expose = expose
+		}
 	}
 
 	text, _ := goyaml.Marshal(udsPackage)
