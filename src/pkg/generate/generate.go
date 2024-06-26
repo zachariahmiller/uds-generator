@@ -10,7 +10,7 @@ import (
 
 	"github.com/defenseunicorns/pkg/helpers"
 	"github.com/defenseunicorns/uds-generator/src/config"
-	"github.com/defenseunicorns/zarf/src/pkg/packager"
+	"github.com/defenseunicorns/uds-generator/src/pkg/packager"
 	"github.com/defenseunicorns/zarf/src/pkg/utils"
 	"github.com/defenseunicorns/zarf/src/types"
 	goyaml "github.com/goccy/go-yaml"
@@ -141,16 +141,25 @@ func Generate() (types.ZarfPackage, error) {
 	packager := packager.NewOrDie(&generator.pkg)
 	defer packager.ClearTempPaths()
 
-	stdout := os.Stdout
-	os.Stdout = nil
+	//stdout := os.Stdout
+	//os.Stdout = nil
 	log.Println("Finding images...")
 	images, err := packager.FindImages()
 	if err != nil {
 		log.Println("Error finding images:", err)
 		return packageInstance, err
 	}
-	os.Stdout = stdout
+	//os.Stdout = stdout
 	log.Println("Found images")
+
+	log.Println("Finding manifest images...")
+	manifestImages, manifestErr := packager.GetManifests()
+	if manifestErr != nil {
+		log.Println("Error finding images:", manifestErr)
+		return packageInstance, manifestErr
+	}
+	//os.Stdout = stdout
+	log.Println("Found manifestImages", manifestImages)
 
 	// TODO: Strip off cosign signatures/attestations?
 	components[0].Images = images[config.GenerateChartName]
